@@ -15,6 +15,8 @@ for file in json_files:
     with open(file, 'r', encoding='utf-8') as f:
         try:
             file_data = json.load(f)
+            
+            # Handle both list and dictionary structures
             if isinstance(file_data, list):
                 for item in file_data:
                     if isinstance(item, dict) and 'data' in item:
@@ -26,15 +28,16 @@ for file in json_files:
             elif isinstance(file_data, dict):
                 if 'data' in file_data:
                     data_attributes = file_data['data']
-                    data_attributes['user_id'] = user_id  # Add user identifier
                     if isinstance(data_attributes, list):
-                        combined_data.extend(data_attributes)
+                        combined_data.extend(data_attributes)  # Extend list if data_attributes is a list
                     else:
+                        data_attributes['user_id'] = user_id  # Add user identifier
                         combined_data.append(data_attributes)
                 else:
                     print(f"No 'data' key found in the dictionary in {file}")
             else:
                 print(f"File {file} contains an unexpected JSON structure.")
+        
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON from file {file}: {e}")
 
