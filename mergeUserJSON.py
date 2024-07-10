@@ -8,7 +8,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 # List all JSON files in the directory following the naming pattern
 json_files = glob.glob(os.path.join(current_dir, 'allDocuments*.json'))
 
-combined_data = []
+merged_data = {}
 
 for file in json_files:
     user_id = os.path.basename(file).replace('.json', '')  # Extract user ID from filename
@@ -16,23 +16,25 @@ for file in json_files:
         try:
             file_data = json.load(f)
             
-            # Handle both list and dictionary structures
             if isinstance(file_data, list):
                 for item in file_data:
                     if isinstance(item, dict) and 'data' in item:
                         data_attributes = item['data']
-                        data_attributes['user_id'] = user_id  # Add user identifier
-                        combined_data.append(data_attributes)
+                        data_attributes['user_id'] = user_id  # Add user ID to data attributes
+                        if user_id in merged_data:
+                            merged_data[user_id].append(data_attributes)
+                        else:
+                            merged_data[user_id] = [data_attributes]
                     else:
                         print(f"No 'data' key found in one of the objects in {file}")
             elif isinstance(file_data, dict):
                 if 'data' in file_data:
                     data_attributes = file_data['data']
-                    if isinstance(data_attributes, list):
-                        combined_data.extend(data_attributes)  # Extend list if data_attributes is a list
+                    data_attributes['user_id'] = user_id  # Add user ID to data attributes
+                    if user_id in merged_data:
+                        merged_data[user_id].append(data_attributes)
                     else:
-                        data_attributes['user_id'] = user_id  # Add user identifier
-                        combined_data.append(data_attributes)
+                        merged_data[user_id] = [data_attributes]
                 else:
                     print(f"No 'data' key found in the dictionary in {file}")
             else:
@@ -41,9 +43,9 @@ for file in json_files:
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON from file {file}: {e}")
 
-# Save the combined data into a new JSON file
+# Save the merged data into a new JSON file
 combined_file_path = os.path.join(current_dir, 'combinedUser.json')
 with open(combined_file_path, 'w', encoding='utf-8') as f:
-    json.dump(combined_data, f, ensure_ascii=False, indent=4)
+    json.dump(merged_data, f, ensure_ascii=False, indent=4)
 
-print(f"Combined JSON data saved to {combined_file_path}")
+print(f"Merged JSON data saved to {combined_file_path}")
